@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Costes de Emisión de Pedido</title>
+    <!-- Estilos de Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1 style="text-align: center;" class="mt-5 mb-4">Cálculos de Costes de Emisión de Pedido</h1>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <h2>Coste de Emisión de Pedido</h2>
+                <div class="mb-3">
+                    <label for="coste_emision" class="form-label">Introduce el coste unitario de emisión de
+                        pedido:</label>
+                    <input type="number" class="form-control" id="coste_emision" step="0.01" oninput="calcular()">
+                </div>
+                <div id="stock_seguridad_resultado"></div>
+            </div>
+            <div class="col-md-6">
+                <h2>Coste de Almacenamiento</h2>
+                <div class="mb-3">
+                    <label for="coste_almacenamiento" class="form-label">Introduce el coste de almacenamiento de una
+                        unidad:</label>
+                    <input type="number" class="form-control" id="coste_almacenamiento" step="0.01"
+                        oninput="calcular()">
+                </div>
+                <div id="cantidad_optima_resultado"></div>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <h2>Stock de Seguridad de Carcasas</h2>
+                <div class="mb-3">
+                    <label for="stock_seguridad_dias" class="form-label">Introduce el stock de seguridad en días de
+                        consumo:</label>
+                    <input type="number" class="form-control" id="stock_seguridad_dias" oninput="calcular()">
+                </div>
+                <div id="num_pedidos_resultado"></div>
+            </div>
+            <div class="col-md-6">
+                <h2>Consumo Anual de Carcasas</h2>
+                <div class="mb-3">
+                    <label for="consumo_anual" class="form-label">Introduce el consumo anual de carcasas:</label>
+                    <input type="number" class="form-control" id="consumo_anual" oninput="calcular()">
+                </div>
+                <div id="punto_pedido_resultado"></div>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <h2>Número de Días de Trabajo al Año</h2>
+                <div class="mb-3">
+                    <label for="dias_trabajo" class="form-label">Introduce el número de días de trabajo al año:</label>
+                    <input type="number" class="form-control" id="dias_trabajo" oninput="calcular()">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h2>Plazo Medio de Entrega del Proveedor</h2>
+                <div class="mb-3">
+                    <label for="plazo_entrega" class="form-label">Introduce el plazo medio de entrega del
+                        proveedor:</label>
+                    <input type="number" class="form-control" id="plazo_entrega" oninput="calcular()">
+                </div>
+            </div>
+        </div>
+
+        <div id="resultados" class="mt-5">
+            <div id="stock_seguridad_resultado"></div>
+            <div id="cantidad_optima_resultado"></div>
+            <div id="num_pedidos_resultado"></div>
+            <div id="punto_pedido_resultado"></div>
+
+        </div>
+    </div>
+
+    <!-- Scripts de Bootstrap y JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+
+    <script>
+        window.onload = function () {
+            // Restaurar valores de los inputs desde sessionStorage
+            document.getElementById("coste_emision").value = sessionStorage.getItem("coste_emision") || "";
+            document.getElementById("coste_almacenamiento").value = sessionStorage.getItem("coste_almacenamiento") || "";
+            document.getElementById("stock_seguridad_dias").value = sessionStorage.getItem("stock_seguridad_dias") || "";
+            document.getElementById("consumo_anual").value = sessionStorage.getItem("consumo_anual") || "";
+            document.getElementById("dias_trabajo").value = sessionStorage.getItem("dias_trabajo") || "";
+            document.getElementById("plazo_entrega").value = sessionStorage.getItem("plazo_entrega") || "";
+
+            // Calcular al cargar la página
+            calcular();
+        }
+
+        function guardarDatos() {
+            sessionStorage.setItem("coste_emision", document.getElementById("coste_emision").value);
+            sessionStorage.setItem("coste_almacenamiento", document.getElementById("coste_almacenamiento").value);
+            sessionStorage.setItem("stock_seguridad_dias", document.getElementById("stock_seguridad_dias").value);
+            sessionStorage.setItem("consumo_anual", document.getElementById("consumo_anual").value);
+            sessionStorage.setItem("dias_trabajo", document.getElementById("dias_trabajo").value);
+            sessionStorage.setItem("plazo_entrega", document.getElementById("plazo_entrega").value);
+        }
+
+        function calcular() {
+            var costeEmision = parseFloat(document.getElementById("coste_emision").value);
+            var costeAlmacenamiento = parseFloat(document.getElementById("coste_almacenamiento").value);
+            var stockSeguridadDias = parseInt(document.getElementById("stock_seguridad_dias").value);
+            var consumoAnual = parseInt(document.getElementById("consumo_anual").value);
+            var diasTrabajo = parseInt(document.getElementById("dias_trabajo").value);
+            var plazoEntrega = parseInt(document.getElementById("plazo_entrega").value);
+
+            var stockSeguridad = (consumoAnual / diasTrabajo) * stockSeguridadDias;
+            var cantidadOptima = Math.sqrt((2 * consumoAnual * costeEmision) / costeAlmacenamiento);
+            var numPedidosAnuales = Math.ceil(consumoAnual / cantidadOptima);
+            var puntoPedido = ((consumoAnual / diasTrabajo) * plazoEntrega) + stockSeguridad;
+
+            var hoy = new Date();
+            var milisegundosEnUnDia = 24 * 60 * 60 * 1000;
+            var diasDesdeUltimoPedido = (hoy - new Date('2024-01-01')) / milisegundosEnUnDia;
+            var diasParaSiguientePedido = Math.round(plazoEntrega - (diasDesdeUltimoPedido % plazoEntrega));
+
+
+            var resultadosHTML = "<h3 class='mt-5'>Resultados</h3>";
+            resultadosHTML += "<div class='mb-4'><h4>Stock de Seguridad de Carcasas:</h4><p>" + formatearNumero(stockSeguridad) + " unidades</p><p>Calculado como (" + formatearNumero(consumoAnual) + " / " + formatearNumero(diasTrabajo) + ") * " + formatearNumero(stockSeguridadDias) + "</p><p>Calculado como (consumoAnual / diasTrabajo) * stockSeguridadDias</p></div>";
+            resultadosHTML += "<div class='mb-4'><h4>Cantidad Óptima de Unidades a Comprar:</h4><p>" + formatearNumero(cantidadOptima) + " unidades</p><p>Calculado como √(2 * " + formatearNumero(consumoAnual) + " * " + formatearNumero(costeEmision) + " / " + formatearNumero(costeAlmacenamiento) + ")</p><p>Calculado como √(2 * consumoAnual * costeEmision / costeAlmacenamiento)</p></div>";
+            resultadosHTML += "<div class='mb-4'><h4>Número de Pedidos Emitidos por Año:</h4><p>" + formatearNumero(numPedidosAnuales) + " pedidos</p><p>Calculado como " + formatearNumero(consumoAnual) + " / " + formatearNumero(cantidadOptima) + "</p><p>Calculado como consumoAnual / cantidadOptima</p></div>";
+            resultadosHTML += "<div class='mb-4'><h4>Punto de Pedido de Carcasas:</h4><p>" + formatearNumero(puntoPedido) + " unidades</p><p>Calculado como ((" + formatearNumero(consumoAnual) + " / " + formatearNumero(diasTrabajo) + ") * " + formatearNumero(plazoEntrega) + ") + " + formatearNumero(stockSeguridad) + "</p><p>Calculado como ((consumoAnual / diasTrabajo) * plazoEntrega) + stockSeguridad</p></div>";
+            resultadosHTML += "<div class='mb-4'><h4>Días para el Próximo Pedido:</h4><p>" + formatearNumero(diasParaSiguientePedido) + " días</p><p>Calculado como " + formatearNumero(plazoEntrega) + " - (" + formatearNumero(diasDesdeUltimoPedido) + " % " + formatearNumero(plazoEntrega) + ")</p><p>Calculado como plazoEntrega - (diasDesdeUltimoPedido % plazoEntrega)</p></div>";
+
+
+            document.getElementById("resultados").innerHTML = resultadosHTML;
+        }
+
+        // Función para formatear números con prefijo de miles, truncados a dos decimales
+        function formatearNumero(numero) {
+            // Convertir el número a string
+            var numeroString = numero.toFixed(2); // Truncar a dos decimales
+
+            // Verificar si el número tiene decimales no nulos
+            if (numeroString.indexOf('.') !== -1) {
+                // Eliminar los ceros finales en la parte decimal
+                numeroString = numeroString.replace(/\.?0*$/, '');
+            }
+
+            // Agregar el prefijo de miles
+            var partes = numeroString.split('.');
+            var parteEntera = partes[0];
+            var parteDecimal = partes.length > 1 ? ',' + partes[1] : '';
+
+            var prefijo = '';
+            while (parteEntera.length > 3) {
+                prefijo = '.' + parteEntera.slice(-3) + prefijo;
+                parteEntera = parteEntera.slice(0, -3);
+            }
+
+            // Concatenar la parte entera con el prefijo, la parte decimal y retornar
+            return parteEntera + prefijo + parteDecimal;
+        }
+
+
+    </script>
+</body>
+
+</html>
